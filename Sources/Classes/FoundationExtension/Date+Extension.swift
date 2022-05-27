@@ -123,13 +123,17 @@ public extension JKPOP where Base == Date {
     /// - Parameters:
     ///   - timestamp: 时间戳
     ///   - format: 格式
+    ///   - utcZone: 是否使用UTC时区, 否为系统时区
     /// - Returns: 对应时间的字符串
-    static func timestampToFormatterTimeString(timestamp: String, format: String = "yyyy-MM-dd HH:mm:ss") -> String {
+    static func timestampToFormatterTimeString(timestamp: String, format: String = "yyyy-MM-dd HH:mm:ss", utcZone:Bool = false) -> String {
         // 时间戳转为Date
         let date = timestampToFormatterDate(timestamp: timestamp)
         // let dateFormatter = DateFormatter()
         // 设置 dateFormat
         jk_formatter.dateFormat = format
+        if utcZone {
+            jk_formatter.timeZone = TimeZone.init(abbreviation: "UTC")
+        }
         // 按照dateFormat把Date转化为String
         return jk_formatter.string(from: date)
     }
@@ -189,10 +193,15 @@ public extension JKPOP where Base == Date {
     // MARK: 2.3、Date 转换为相应格式的时间字符串，如 Date 转为 2020-10-28
     /// Date 转换为相应格式的字符串，如 Date 转为 2020-10-28
     /// - Parameter format: 转换的格式
+    /// - Parameter utcZone: 是否使用UTC时区, 不用则为系统时区
     /// - Returns: 返回具体的字符串
-    func toformatterTimeString(formatter: String = "yyyy-MM-dd HH:mm:ss") -> String {
+    func toformatterTimeString(formatter: String = "yyyy-MM-dd HH:mm:ss", utcZone: Bool = false) -> String {
         // let dateFormatter = DateFormatter()
-        jk_formatter.timeZone = TimeZone.autoupdatingCurrent
+        if utcZone {
+            jk_formatter.timeZone = TimeZone.init(abbreviation: "UTC")
+        } else {
+            jk_formatter.timeZone = TimeZone.autoupdatingCurrent
+        }
         jk_formatter.dateFormat = formatter
         return jk_formatter.string(from: self.base)
     }

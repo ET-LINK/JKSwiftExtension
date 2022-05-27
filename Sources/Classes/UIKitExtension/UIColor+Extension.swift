@@ -310,3 +310,27 @@ extension UIColor {
 }
 
 
+extension UIColor {
+    /// 颜色转图片,用于navigationbar的阴影
+    /// - Returns: 图片
+    func as1ptImage() -> UIImage {
+        UIGraphicsBeginImageContext(CGSize(width: 1, height: 1))
+        setFill()
+        UIGraphicsGetCurrentContext()?.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
+        let image = UIGraphicsGetImageFromCurrentImageContext() ?? UIImage()
+        UIGraphicsEndImageContext()
+        return image
+    }
+    
+    /// 更改颜色的透明度
+    /// - Returns: 新的颜色
+    func changeAlpha(to newAlpha: CGFloat) -> UIColor {
+       var red:CGFloat   = 0.0
+       var green:CGFloat = 0.0
+       var blue:CGFloat  = 0.0
+       var alpha:CGFloat = 0.0
+       self.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+       return UIColor(red: red, green: green, blue: blue, alpha: newAlpha)
+   }
+}
+

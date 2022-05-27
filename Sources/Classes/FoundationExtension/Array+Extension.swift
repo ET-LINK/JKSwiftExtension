@@ -89,6 +89,63 @@ public extension Array where Element : Equatable {
         let indexs = indexes(item)
         return indexs.last
     }
+    
+    /// 从数组中返回一个随机元素
+    public var sample: Element? {
+        //如果数组为空，则返回nil
+        guard count > 0 else { return nil }
+        let randomIndex = Int(arc4random_uniform(UInt32(count)))
+        return self[randomIndex]
+    }
+    
+    /// 从数组中从返回指定个数的元素
+    ///
+    /// - Parameters:
+    ///   - size: 希望返回的元素个数
+    ///   - noRepeat: 返回的元素是否不可以重复（默认为false，可以重复）
+    public func sample(size: Int, noRepeat: Bool = false) -> [Element]? {
+        //如果数组为空，则返回nil
+        guard !isEmpty else { return nil }
+        
+        var sampleElements: [Element] = []
+        
+        //返回的元素可以重复的情况
+        if !noRepeat {
+            for _ in 0..<size {
+                sampleElements.append(sample!)
+            }
+        }
+            //返回的元素不可以重复的情况
+        else{
+            //先复制一个新数组
+            var copy = self.map { $0 }
+            for _ in 0..<size {
+                //当元素不能重复时，最多只能返回原数组个数的元素
+                if copy.isEmpty { break }
+                let randomIndex = Int(arc4random_uniform(UInt32(copy.count)))
+                let element = copy[randomIndex]
+                sampleElements.append(element)
+                //每取出一个元素则将其从复制出来的新数组中移除
+                copy.remove(at: randomIndex)
+            }
+        }
+        
+        return sampleElements
+    }
+    
+    
+    /// 新建空数组
+    /// - Parameter reserveCapacity: 数组大小
+    public init(reserveCapacity: Int) {
+        self = Array<Element>()
+        self.reserveCapacity(reserveCapacity)
+    }
+    
+    
+    /// 获取当前数组的完整切片
+    var slice: ArraySlice<Element> {
+        return self[self.startIndex ..< self.endIndex]
+    }
 }
 
 // MARK: - 三、遵守 Equatable 协议的数组 (增删改查) 扩展
@@ -183,4 +240,58 @@ public extension Array where Self.Element == String {
     func toStrinig(separator: String = "") -> String {
         return self.joined(separator: separator)
     }
+    
+    
 }
+
+// Hex字符串 和 Array<UInt8>的变化
+extension Array where Element == UInt8 {
+    public init(hex: String) {
+        self.init(reserveCapacity: hex.unicodeScalars.lazy.underestimatedCount)
+        var buffer: UInt8?
+        var skip = hex.hasPrefix("0x") ? 2 : 0
+        for char in hex.unicodeScalars.lazy {
+            guard skip == 0 else {
+                skip -= 1
+                continue
+            }
+            guard char.value >= 48 && char.value <= 102 else {
+                removeAll()
+                return
+            }
+            let v: UInt8
+            let c: UInt8 = UInt8(char.value)
+            switch c {
+            case let c where c <= 57:
+                v = c - 48
+            case let c where c >= 65 && c <= 70:
+                v = c - 55
+            case let c where c >= 97:
+                v = c - 87
+            default:
+                removeAll()
+                return
+            }
+            if let b = buffer {
+                append(b << 4 | v)
+                buffer = nil
+            } else {
+                buffer = v
+            }
+        }
+        if let b = buffer {
+            append(b)
+        }
+    }
+    
+    public func toHexString() -> String {
+        return `lazy`.reduce("") {
+            var s = String($1, radix: 16)
+            if s.count == 1 {
+                s = "0" + s
+            }
+            return $0 + s
+        }
+    }
+}
+

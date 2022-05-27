@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SafariServices
 
 // MARK: - 一、基本的扩展
 extension UIViewController: JKPOPCompatible {}
@@ -90,6 +91,11 @@ public extension JKPOP where Base: UIViewController {
             nav.dismiss(animated: true, completion: nil)
         }
     }
+    
+    /// 当前控制器的名称
+    var theClassName: String {
+        return String(describing: type(of: self))
+    }
 }
 
 // MARK: - 二、Storyboard 的 VC 交互
@@ -134,6 +140,27 @@ public extension JKPOP where Base: UIViewController {
         let vc = storyboard.instantiateViewController(withIdentifier: identifier)
         sender?(vc)
         self.base.navigationController?.pushViewController(vc, animated: true)
+    }
+}
+
+// MARK:- 三、 显示Safari网页
+public extension JKPOP where Base: UIViewController {
+    
+    /// 显示Safari网页
+    /// - Parameters:
+    ///   - defaultKey: 网页地址
+    ///   - isAllowedCharacters: url后是否有"?key=value"这种形式
+    func presentSafari(_ defaultKey: String, _ isAllowedCharacters: Bool = false ) {
+        var eco = defaultKey
+        if isAllowedCharacters {
+            eco = defaultKey.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
+        }
+        if let url = URL(string: eco) {
+            let config = SFSafariViewController.Configuration()
+            config.entersReaderIfAvailable = true
+            let sf = SFSafariViewController(url: url)
+            present(sf, animated: true, completion: nil)
+        }
     }
 }
 
